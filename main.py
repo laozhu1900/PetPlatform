@@ -4,8 +4,13 @@
 from flask import Flask, request, jsonify
 import json
 from model import User, db, Pet
+from flask_cors import CORS
+
+
 
 app = Flask(__name__)
+
+CORS(app)
 
 info = {
 
@@ -46,7 +51,7 @@ def hello_world():
 
 
 @app.route("/register", methods=['POST'])
-def login():
+def register():
     json_data = json.loads(request.get_data())
 
     phone = json_data['phone']
