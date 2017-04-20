@@ -5,24 +5,24 @@ from flask import Flask, request, jsonify
 import json
 from model import User, db, Pet
 from flask_cors import CORS
+import uuid
+from settings import *
+from qiniu import Auth, put_file, etag, urlsafe_base64_encode
 
-
-
+q = Auth(access_key=QINIU_ACCESS_KEY, secret_key=QINIU_SECRET_KEY)
 app = Flask(__name__)
 
 CORS(app)
 
-info = {
-
-    'result': 0,
-    'msg': "成功",
-    'data': 'null'
-
-}
-
-
 @app.route('/')
 def hello_world():
+    info = {
+
+        'result': 0,
+        'msg': "成功",
+        'data': 'null'
+
+    }
     return jsonify(info)
 
 
@@ -52,6 +52,13 @@ def hello_world():
 
 @app.route("/register", methods=['POST'])
 def register():
+    info = {
+
+        'result': 0,
+        'msg': "成功",
+        'data': 'null'
+
+    }
     json_data = json.loads(request.get_data())
 
     phone = json_data['phone']
@@ -77,6 +84,17 @@ def register():
 
 
 """
+    上传图片借口
+    {
+      "result": 0,
+      "msg": "成功",
+      "data": {
+        "imgUrl":"http://www.95599.cn/jiangsu/intro/jsweixintest/ABCWeJS/dist/static/img/mall/product.png"
+      }
+    }//返回对象（图片绝对地址）
+"""
+
+"""
     用户登录接口
 
     {
@@ -100,6 +118,13 @@ def register():
 
 @app.route("/login", methods=['POST'])
 def login():
+    info = {
+
+        'result': 0,
+        'msg': "成功",
+        'data': 'null'
+
+    }
     json_data = json.loads(request.get_data())
 
     phone = json_data['phone']
@@ -110,7 +135,7 @@ def login():
         info['result'] = 1
         info['msg'] = '该用户不存在'
         return jsonify(info)
-    elif u.password != password:
+    elif u.password != password.strip():
         info['result'] = 1
         info['msg'] = '用户名或者密码错误'
         return jsonify(info)
@@ -146,6 +171,13 @@ def login():
 
 @app.route("/edit_user", methods=['POST'])
 def edit_user():
+    info = {
+
+        'result': 0,
+        'msg': "成功",
+        'data': 'null'
+
+    }
     json_data = json.loads(request.get_data())
 
     phone = json_data['phone']
@@ -176,6 +208,13 @@ def edit_user():
 
 @app.route("/black_user", methods=['POST'])
 def black_user():
+    info = {
+
+        'result': 0,
+        'msg': "成功",
+        'data': 'null'
+
+    }
     json_data = json.loads(request.get_data())
 
     phone = json_data['phone']
@@ -204,6 +243,13 @@ def black_user():
 
 @app.route("/change_password", methods=['POST'])
 def change_password():
+    info = {
+
+        'result': 0,
+        'msg': "成功",
+        'data': 'null'
+
+    }
     json_data = json.loads(request.get_data())
 
     phone = json_data['phone']
@@ -216,6 +262,7 @@ def change_password():
         u.password = json_data['newpwd']
         db.session.add(u)
         db.session.commit()
+        return jsonify(info)
 
 
 """
@@ -239,6 +286,13 @@ def change_password():
 
 @app.route("/search_user", methods=['POST'])
 def search_user():
+    info = {
+
+        'result': 0,
+        'msg': "成功",
+        'data': 'null'
+
+    }
     json_data = json.loads(request.get_data())
 
     phone = json_data['phone']
