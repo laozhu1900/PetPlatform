@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 # -*-coding:utf-8-*-
 import math
+import os
+
 from flask import Flask, request, jsonify
 import json
+
+from werkzeug.utils import secure_filename
+
 from model import User, db, Pet, Collection
 from flask_cors import CORS
 import uuid
@@ -94,6 +99,26 @@ def register():
       }
     }//返回对象（图片绝对地址）
 """
+
+
+@app.route("/upload_pic", methods=['post', 'get'])
+def upload_pic():
+    info = {
+
+        'result': 0,
+        'msg': "成功",
+        'data': None
+
+    }
+    f = request.files['file']
+
+    file_name = secure_filename(f.filename)
+
+    token = q.upload_token(bucket_name, file_name, 3600)
+    put_file(token, file_name, f)
+
+    return jsonify(info)
+
 
 """
     用户登录接口
