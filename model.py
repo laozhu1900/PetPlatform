@@ -50,6 +50,8 @@ class Pet(db.Model):
     pet_description = db.Column(db.String(256), default="")
     img_url = db.Column(db.String(256), default="")
     img_list = db.Column(db.Text, default="")
+    pet_master_phone = db.Column(db.String(80), default="")
+    pet_area = db.Column(db.String(80), default="")
 
     def __init__(self, **kwargs):
         super(Pet, self).__init__(**kwargs)
@@ -97,7 +99,7 @@ class User(db.Model):
 class Collection(db.Model):
     __tablename__ = 'collection'
     phone = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=False)
-    pet_name = db.Column(db.String(80))
+    pet_code = db.Column(db.String(80))
 
     def __init__(self, **kwargs):
         super(Collection, self).__init__(**kwargs)
@@ -107,10 +109,21 @@ class Collection(db.Model):
 
 
 if __name__ == '__main__':
-    # db.drop_all()
-    # db.create_all()
-    # u = User(phone='15705313515',password='123123')
+
+    db.drop_all()
+    db.create_all()
+    # u = User(phone='15705313513',password='123123')
     # db.session.add(u)
+
+    # u = User.whoosh_search(u'15705').all()
+    # print u
+    # db.session.delete(u)
     # db.session.commit()
-    u = User.query.filter_by(phone='15705313515').first()
-    print u is not None
+    # try:
+    #     u = User.query.paginate(2, 2)
+    #     for i in u.items:
+    #         print i.phone
+    # except:
+    #     print 111
+
+        # u = User.query.all()
