@@ -101,7 +101,7 @@ def register():
 """
 
 
-@app.route("/upload_pic", methods=['post', 'get'])
+@app.route("/upload_pic", methods=['post'])
 def upload_pic():
     info = {
 
