@@ -110,13 +110,13 @@ def upload_pic():
         'data': None
 
     }
-    # f = request.files['file']
+    f = request.files['file']
+
+    file_name = secure_filename(f.filename)
+
+    # f = "2.jpg"
     #
-    # file_name = secure_filename(f.filename)
-
-    f = "2.jpg"
-
-    file_name = "2.jpg"
+    # file_name = "2.jpg"
 
     token = q.upload_token(bucket_name, file_name, 3600)
     put_file(token, file_name, f)
