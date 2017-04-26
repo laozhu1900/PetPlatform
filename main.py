@@ -22,6 +22,7 @@ CORS(app)
 
 @app.route('/')
 def hello_world():
+    print 111
     info = {
 
         'result': 0,
@@ -75,12 +76,12 @@ def register():
         info['msg'] = '该手机号已经被注册'
         return jsonify(info)
     else:
-        user = User(phone=phone, password=password)
+        user = User(phone=phone, password=password, user_icon='http://7xsgma.com1.z0.glb.clouddn.com/head')
         db.session.add(user)
         db.session.commit()
         info['data'] = {
             "username": "",
-            "userIcon": "",
+            "userIcon": "http://7xsgma.com1.z0.glb.clouddn.com/head",
             "phone": phone,
             "area": "南京",
             "description": "",
@@ -100,9 +101,12 @@ def register():
     }//返回对象（图片绝对地址）
 """
 
+UPLOAD_FOLDER = '/home/zhu/git/PetPlatform/uploads'
+
 
 @app.route("/upload_pic", methods=['post'])
 def upload_pic():
+    print 121212
     info = {
 
         'result': 0,
@@ -112,16 +116,13 @@ def upload_pic():
     }
     f = request.files['file']
 
-    file_name = secure_filename(f.filename)
-
-    # f = "2.jpg"
-    #
-    # file_name = "2.jpg"
-
-    token = q.upload_token(bucket_name, file_name, 3600)
-    put_file(token, file_name, f)
-
-    info['data'] = "http://"+QINIU_BUCKET_DOMAIN+"/" + file_name
+    fname = secure_filename(f.filename)
+    file_name = os.path.join(UPLOAD_FOLDER, fname)
+    f.save(file_name)
+    name_in_qiniu = str(uuid.uuid1())
+    token = q.upload_token(bucket_name, name_in_qiniu, 3600)
+    put_file(token, name_in_qiniu, file_name)
+    info['data'] = "http://" + QINIU_BUCKET_DOMAIN + "/" + name_in_qiniu
 
     return jsonify(info)
 
@@ -148,7 +149,7 @@ def upload_pic():
 """
 
 
-@app.route("/login", methods=['POST'])
+@app.route("/login", methods=['post'])
 def login():
     info = {
 
@@ -167,7 +168,7 @@ def login():
         info['result'] = 1
         info['msg'] = '该用户不存在'
         return jsonify(info)
-    elif u.password != password.strip():
+    elif u.password != password:
         info['result'] = 1
         info['msg'] = '用户名或者密码错误'
         return jsonify(info)
@@ -917,4 +918,5 @@ def pet_is_star():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='43.251.116.231', port=5000, threaded=False, debug=True)
+    # app.run(host='127.0.0.1', port=5000, threaded=False, debug=True)

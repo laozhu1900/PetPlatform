@@ -77,7 +77,7 @@ class User(db.Model):
     phone = db.Column(db.String(80), unique=True, primary_key=True, autoincrement=False)
     username = db.Column(db.String(80), default="")
     password = db.Column(db.String(80), default="")
-    user_icon = db.Column(db.String(80), default="")
+    user_icon = db.Column(db.String(256), default="")
     area = db.Column(db.String(80), default="南京".encode('utf-8'))
     description = db.Column(db.String(256), default="")
     auth = db.Column(db.Boolean, default=True)

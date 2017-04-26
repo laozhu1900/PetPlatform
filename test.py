@@ -13,10 +13,10 @@ q = Auth(access_key=QINIU_ACCESS_KEY, secret_key=QINIU_SECRET_KEY)
 
 bucket_name = 'avatar'
 
-key = '2.jpg'
+key = 'head'
 token = q.upload_token(bucket_name, key, 3600)
 
-localfile = '2.jpg'
+localfile = 'head.jpg'
 
 put_file(token, key, localfile)
 

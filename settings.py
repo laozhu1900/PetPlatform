@@ -8,7 +8,7 @@ QINIU_BUCKET_DOMAIN = '7xsgma.com1.z0.glb.clouddn.com'
 
 db_settings = {
     'user': 'root',
-    'password': '930929',
+    'password': 'zhuzw',
     'port': 3306,
     'db_name': 'pet_platform',
     'host': '127.0.0.1'
