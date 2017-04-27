@@ -397,7 +397,7 @@ def add_pet():
     p = Pet(pet_code=pet_id, img_url=img_url, img_list=img_list, pet_name=pet_name, pet_type=pet_type, pet_sex=pet_sex,
             pet_old=pet_old, pet_ster=pet_ster, pet_immune=pet_immune, pet_feature=pet_feature,
             pet_description=pet_description,
-            pet_area=area, p_master_phone=phone)
+            pet_area=area, pet_master_phone=phone)
     db.session.add(p)
     db.session.commit()
     return jsonify(info)
