@@ -7,7 +7,7 @@ from flask import Flask, request, jsonify
 import json
 
 from werkzeug.utils import secure_filename
-
+from sqlalchemy  import or_
 from model import User, db, Pet, Collection
 from flask_cors import CORS
 import uuid
@@ -22,7 +22,6 @@ CORS(app)
 
 @app.route('/')
 def hello_world():
-    print 111
     info = {
 
         'result': 0,
@@ -106,7 +105,6 @@ UPLOAD_FOLDER = '/home/zhu/git/PetPlatform/uploads'
 
 @app.route("/upload_pic", methods=['post'])
 def upload_pic():
-    print 121212
     info = {
 
         'result': 0,
@@ -328,8 +326,10 @@ def search_user():
     }
     json_data = json.loads(request.get_data())
 
+    print "search_user:json:",json_data
     phone = json_data['phone']
     u = User.query.filter_by(phone=phone).first()
+    print 1,u
     if u is not None:
 
         info["data"] = {
@@ -390,7 +390,7 @@ def add_pet():
     pet_old = json_data['PetOld']
     pet_ster = json_data['PetSter']
     pet_immune = json_data['PetImmune']
-    pet_feature = ".".join(json_data['PetFeature'])
+    pet_feature = ",".join(json_data['PetFeature'])
     pet_description = json_data['PetDescription']
     area = json_data['area']
     phone = json_data['phone']
@@ -468,7 +468,7 @@ def list_pets():
                 "PetOld": p.pet_old,
                 "PetSter": p.pet_ster,
                 "PetImmune": p.pet_immune,
-                "PetFeature": p.pet_feature.split(","),
+                "PetFeature": p.pet_feature.replace(".",",").split(","),
                 "PetDescription": p.pet_description,
                 "area": p.pet_area,
                 "phone": p.pet_master_phone
@@ -575,7 +575,7 @@ def delete_pet():
 
     pet_code = json_data['PetCode']
 
-    p = Pet.query.filter_by(pet_code=pet_code)
+    p = Pet.query.filter_by(pet_code=pet_code).first()
 
     db.session.delete(p)
     db.session.commit()
@@ -630,14 +630,15 @@ def search_pet_by_phone():
     phone = json_data['phone']
     page = json_data['page']
     num = json_data['num']
-
-    p_all = Pet.query.filter_by(phone=phone).all()
-
+    print json_data
+    p_all = Pet.query.filter_by(pet_master_phone=phone).all()
+    print p_all
     if len(p_all) is not 0:
-        length = math.ceil(len(p_all) * 1.0 / int(num))
         try:
-            p = Pet.query.paginate(int(page), int(num), False)
+            length = math.ceil(len(p_all) * 1.0 / int(num))
+            p = Pet.query.filter_by(pet_master_phone=phone).paginate(int(page), int(num), False)
             all_pets = p.items
+	    print all_pets
             info['data'] = []
 
             for p in all_pets:
@@ -665,8 +666,9 @@ def search_pet_by_phone():
             info['msg'] = "超过当前页数，共" + str(length) + "页"
             return jsonify(info)
     else:
-        info['result'] = 1
+        info['result'] = 0
         info['msg'] = "该用户没有宠物"
+	info['data'] = []
         return jsonify(info)
 
 
@@ -717,15 +719,16 @@ def search_pet_vague():
     word = json_data['word']
     page = json_data['page']
     num = json_data['num']
+    print json_data
+    all_by_name = Pet.query.filter(Pet.pet_name.like('%' + word + '%')).all()
 
-    all_by_name = Pet.query.filter(Pet.pet_name.like('%' + word + '%'))
-    all_by_type = Pet.query.filter(Pet.pet_name.like('%' + word + '%'))
-    p_all = all_by_name + all_by_type
+    p_all = Pet.query.filter(or_(Pet.pet_name.like('%'+word+'%'),Pet.pet_type.like('%'+word+'%'),Pet.pet_description.like('%'+word+'%'))).all()
+
 
     if len(p_all) is not 0:
         length = math.ceil(len(p_all) * 1.0 / int(num))
         try:
-            p = Pet.query.paginate(int(page), int(num), False)
+            p =  Pet.query.filter(or_(Pet.pet_name.like('%'+word+'%'),Pet.pet_type.like('%'+word+'%'),Pet.pet_description.like('%'+word+'%'))).paginate(int(page), int(num), False)
             all_pets = p.items
             info['data'] = []
 
@@ -809,7 +812,7 @@ def search_star_pets():
     if len(all_pets_code) is not 0:
         all_pets = []
 
-        for i in all_pets:
+        for i in all_pets_code:
             all_pets.append(Pet.query.filter_by(pet_code=i.pet_code).first())
 
         info['data'] = []
@@ -825,7 +828,7 @@ def search_star_pets():
                 "PetOld": p.pet_old,
                 "PetSter": p.pet_ster,
                 "PetImmune": p.pet_immune,
-                "PetFeature": p.pet_feature.split(","),
+                "PetFeature": p.pet_feature.replace(".",",").split(","),
                 "PetDescription": p.pet_description,
                 "area": p.pet_area,
                 "phone": p.pet_master_phone
@@ -868,15 +871,21 @@ def pet_star():
     pet_code = json_data['PetCode']
     star = json_data['star']
 
-    if star is "true":
+    if star is True:
         c = Collection(phone=phone, pet_code=pet_code)
         db.session.add(c)
+        db.session.commit()
 
-    else:
+    elif star is False:
         c = Collection(phone=phone, pet_code=pet_code)
         db.session.delete(c)
+        db.session.commit()
+    
+    else:
+        info['result']=1
+        info['msg']='失败'
+        info['data']='操作失败'
 
-    db.session.commit()
     return jsonify(info)
 
 

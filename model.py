@@ -7,6 +7,8 @@ from flask import Flask
 from settings import db_settings
 from flask_sqlalchemy import SQLAlchemy
 
+from sqlalchemy  import or_
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -39,7 +41,7 @@ db = SQLAlchemy(app)
 
 class Pet(db.Model):
     __tablename__ = 'pet'
-    pet_code = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    pet_code = db.Column(db.String(256), primary_key=True, autoincrement=False)
     pet_name = db.Column(db.String(80), default="")
     pet_type = db.Column(db.String(80), default="")
     pet_sex = db.Column(db.Boolean)
@@ -98,23 +100,27 @@ class User(db.Model):
 
 class Collection(db.Model):
     __tablename__ = 'collection'
-    phone = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=False)
+    collection_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
+    phone = db.Column(db.String(80))
     pet_code = db.Column(db.String(80))
-
+    
     def __init__(self, **kwargs):
         super(Collection, self).__init__(**kwargs)
 
     def __repr__(self):
-        return '<Collection %r %r>' % self.phone
-
+        return '<Collection  %r>' % self.collection_id
 
 if __name__ == '__main__':
 
-    db.drop_all()
-    db.create_all()
+   # db.drop_all()
+    #db.create_all()
     # u = User(phone='15705313513',password='123123')
     # db.session.add(u)
-
+    #c = Collection(phone='15705213515',pet_code='12')
+    #db.session.add(c)
+    #db.session.commit()
+    #p_all = Pet.query.filter_by(pet_master_phone='15705213522').paginate(1, 1)
+    #print p_all
     # u = User.whoosh_search(u'15705').all()
     # print u
     # db.session.delete(u)
@@ -127,3 +133,6 @@ if __name__ == '__main__':
     #     print 111
 
         # u = User.query.all()
+    word='哈士奇'
+    p_all = Pet.query.filter(or_(Pet.pet_name.like('%'+word+'%'),Pet.pet_type.like('%'+word+'%'),Pet.pet_description.like('%'+word+'%'))).all()
+    print p_all
