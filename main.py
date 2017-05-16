@@ -949,7 +949,7 @@ def pet_is_star():
 """
 
 
-@app.route('/admin_login',methods=['post'])
+@app.route('/admin_login', methods=['post'])
 def admin_login():
     info = {
         'result': 0,
@@ -977,6 +977,7 @@ def admin_login():
         }
         return jsonify(info)
 
+
 """
     {
         "phone":"admin",
@@ -989,6 +990,7 @@ def admin_login():
       "data": null
     }//返回对象
 """
+
 
 @app.route('/change_admin_password', methods=['post'])
 def change_admin_password():
@@ -1008,15 +1010,12 @@ def change_admin_password():
         info['result'] = 1
         info['msg'] = '原始密码不正确'
         return jsonify(info)
-    elif oldpwd != newpwd:
-        info['result'] = 1
-        info['msg'] = '两次密码不一致'
-        return jsonify(info)
     else:
         admin.password = newpwd
         db.session.add(admin)
         db.session.commit()
         return jsonify(info)
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, threaded=False, debug=True)
