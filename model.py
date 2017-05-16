@@ -129,7 +129,7 @@ class Admin(db.Model):
 
 class Collection(db.Model):
     __tablename__ = 'collection'
-    collection_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
+    collection_id = db.Column(db.String(256), unique=True, primary_key=True, autoincrement=True)
     phone = db.Column(db.String(80))
     pet_code = db.Column(db.String(80))
 
