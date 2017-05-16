@@ -5,12 +5,13 @@ import os
 
 from flask import Flask, request, jsonify
 import json
+import uuid
 
 from werkzeug.utils import secure_filename
-from sqlalchemy  import or_
-from model import User, db, Pet, Collection
-from flask_cors import CORS
-import uuid
+from sqlalchemy import or_
+from model import User, db, Pet, Collection, Admin
+from flask.ext.cors import CORS
+# from flask_cors import CORS
 from settings import *
 from qiniu import Auth, put_file, etag, urlsafe_base64_encode
 
@@ -326,10 +327,10 @@ def search_user():
     }
     json_data = json.loads(request.get_data())
 
-    print "search_user:json:",json_data
+    print "search_user:json:", json_data
     phone = json_data['phone']
     u = User.query.filter_by(phone=phone).first()
-    print 1,u
+    print 1, u
     if u is not None:
 
         info["data"] = {
@@ -468,7 +469,7 @@ def list_pets():
                 "PetOld": p.pet_old,
                 "PetSter": p.pet_ster,
                 "PetImmune": p.pet_immune,
-                "PetFeature": p.pet_feature.replace(".",",").split(","),
+                "PetFeature": p.pet_feature.replace(".", ",").split(","),
                 "PetDescription": p.pet_description,
                 "area": p.pet_area,
                 "phone": p.pet_master_phone
@@ -638,7 +639,7 @@ def search_pet_by_phone():
             length = math.ceil(len(p_all) * 1.0 / int(num))
             p = Pet.query.filter_by(pet_master_phone=phone).paginate(int(page), int(num), False)
             all_pets = p.items
-	    print all_pets
+            print all_pets
             info['data'] = []
 
             for p in all_pets:
@@ -668,7 +669,7 @@ def search_pet_by_phone():
     else:
         info['result'] = 0
         info['msg'] = "该用户没有宠物"
-	info['data'] = []
+        info['data'] = []
         return jsonify(info)
 
 
@@ -722,13 +723,14 @@ def search_pet_vague():
     print json_data
     all_by_name = Pet.query.filter(Pet.pet_name.like('%' + word + '%')).all()
 
-    p_all = Pet.query.filter(or_(Pet.pet_name.like('%'+word+'%'),Pet.pet_type.like('%'+word+'%'),Pet.pet_description.like('%'+word+'%'))).all()
-
+    p_all = Pet.query.filter(or_(Pet.pet_name.like('%' + word + '%'), Pet.pet_type.like('%' + word + '%'),
+                                 Pet.pet_description.like('%' + word + '%'))).all()
 
     if len(p_all) is not 0:
         length = math.ceil(len(p_all) * 1.0 / int(num))
         try:
-            p =  Pet.query.filter(or_(Pet.pet_name.like('%'+word+'%'),Pet.pet_type.like('%'+word+'%'),Pet.pet_description.like('%'+word+'%'))).paginate(int(page), int(num), False)
+            p = Pet.query.filter(or_(Pet.pet_name.like('%' + word + '%'), Pet.pet_type.like('%' + word + '%'),
+                                     Pet.pet_description.like('%' + word + '%'))).paginate(int(page), int(num), False)
             all_pets = p.items
             info['data'] = []
 
@@ -828,7 +830,7 @@ def search_star_pets():
                 "PetOld": p.pet_old,
                 "PetSter": p.pet_ster,
                 "PetImmune": p.pet_immune,
-                "PetFeature": p.pet_feature.replace(".",",").split(","),
+                "PetFeature": p.pet_feature.replace(".", ",").split(","),
                 "PetDescription": p.pet_description,
                 "area": p.pet_area,
                 "phone": p.pet_master_phone
@@ -880,11 +882,11 @@ def pet_star():
         c = Collection(phone=phone, pet_code=pet_code)
         db.session.delete(c)
         db.session.commit()
-    
+
     else:
-        info['result']=1
-        info['msg']='失败'
-        info['data']='操作失败'
+        info['result'] = 1
+        info['msg'] = '失败'
+        info['data'] = '操作失败'
 
     return jsonify(info)
 
@@ -926,6 +928,96 @@ def pet_is_star():
         return jsonify(info)
 
 
+"""
+    {
+        "phone":"admin",
+        "password":"admin"
+    }  //请求对象
+    {
+      "result": 0,
+      "msg": "成功",
+      "data": {
+        "username":"发发呆哟",
+        "userIcon":"http://www.95599.cn/jiangsu/intro/jsweixintest/ABCWeJS/dist/static/img/mall/product.png",
+        "phone":"admin",
+        "area":"南京",
+        "description":"高甜",
+        "auth":3
+      }
+    }//返回对象（和注册接口的区别在auth可能为false）
+
+"""
+
+
+@app.route('/admin_login',methods=['post'])
+def admin_login():
+    info = {
+        'result': 0,
+        'msg': "成功",
+        'data': None
+    }
+    json_data = json.loads(request.get_data())
+    phone = json_data['phone']
+    password = json_data['password']
+
+    admin = Admin.query.filter_by(phone=phone, password=password).first()
+
+    if admin is None:
+        info['result'] = 1
+        info['msg'] = '用户名或密码错误'
+        return jsonify(info)
+    else:
+        info["data"] = {
+            "username": admin.username,
+            "userIcon": admin.user_icon,
+            "phone": admin.phone,
+            "area": admin.area,
+            "description": admin.description,
+            "auth": admin.auth
+        }
+        return jsonify(info)
+
+"""
+    {
+        "phone":"admin",
+        "oldpwd":"admin",
+        "newpwd":"111111"
+    }  //请求对象
+    {
+      "result": 0,
+      "msg": "成功",
+      "data": null
+    }//返回对象
+"""
+
+@app.route('/change_admin_password', methods=['post'])
+def change_admin_password():
+    info = {
+        'result': 0,
+        'msg': "成功",
+        'data': None
+    }
+    json_data = json.loads(request.get_data())
+    phone = json_data['phone']
+    oldpwd = json_data['oldpwd']
+    newpwd = json_data['newpwd']
+
+    admin = Admin.query.filter_by(phone=phone, password=oldpwd).first()
+
+    if admin is None:
+        info['result'] = 1
+        info['msg'] = '原始密码不正确'
+        return jsonify(info)
+    elif oldpwd != newpwd:
+        info['result'] = 1
+        info['msg'] = '两次密码不一致'
+        return jsonify(info)
+    else:
+        admin.password = newpwd
+        db.session.add(admin)
+        db.session.commit()
+        return jsonify(info)
+
 if __name__ == '__main__':
-    app.run(host='43.251.116.231', port=5000, threaded=False, debug=True)
+    app.run(host='127.0.0.1', port=5000, threaded=False, debug=True)
     # app.run(host='127.0.0.1', port=5000, threaded=False, debug=True)

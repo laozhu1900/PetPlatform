@@ -7,7 +7,7 @@ from flask import Flask
 from settings import db_settings
 from flask_sqlalchemy import SQLAlchemy
 
-from sqlalchemy  import or_
+from sqlalchemy import or_
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -92,6 +92,35 @@ class User(db.Model):
 
 
 """
+    phone	固定值（admin）	admin
+    password	密码	admin
+    userIcon	用户头像	http://XXXXX
+    username	用户昵称	Daze
+    area	用户所在地	南京
+    description	用户自我描述	我们的上天啊
+    auth	3
+
+"""
+
+
+class Admin(db.Model):
+    __tablename__ = 'admin'
+    phone = db.Column(db.String(80), unique=True, primary_key=True, autoincrement=False)
+    username = db.Column(db.String(80), default="")
+    password = db.Column(db.String(80), default="")
+    user_icon = db.Column(db.String(256), default="")
+    area = db.Column(db.String(80), default="南京".encode('utf-8'))
+    description = db.Column(db.String(256), default="")
+    auth = db.Column(db.CHAR, default='3')
+
+    def __init__(self, **kwargs):
+        super(Admin, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return '<Admin %r>' % self.phone
+
+
+"""
     收藏属性：
         phone	手机号（注册手机号）	15705213522
         PetCode	宠物唯一键值	201732131
@@ -103,24 +132,38 @@ class Collection(db.Model):
     collection_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
     phone = db.Column(db.String(80))
     pet_code = db.Column(db.String(80))
-    
+
     def __init__(self, **kwargs):
         super(Collection, self).__init__(**kwargs)
 
     def __repr__(self):
         return '<Collection  %r>' % self.collection_id
 
-if __name__ == '__main__':
 
-   # db.drop_all()
-    #db.create_all()
-    # u = User(phone='15705313513',password='123123')
+if __name__ == '__main__':
+    # db.drop_all()
+
+    """
+        添加管理员记录
+    """
+    db.create_all()
+    admin = Admin(phone="admin", username='admin', password='admin',area="南京",description="admin",auth='3',user_icon='http://7xsgma.com1.z0.glb.clouddn.com/head')
+    db.session.add(admin)
+    db.session.commit()
+
+    # u = User(phone='15705313513', password='123123')
+    #
     # db.session.add(u)
-    #c = Collection(phone='15705213515',pet_code='12')
-    #db.session.add(c)
-    #db.session.commit()
-    #p_all = Pet.query.filter_by(pet_master_phone='15705213522').paginate(1, 1)
-    #print p_all
+    # db.session.commit()
+
+
+
+
+    # c = Collection(phone='15705213515',pet_code='12')
+    # db.session.add(c)
+
+    # p_all = Pet.query.filter_by(pet_master_phone='15705213522').paginate(1, 1)
+    # print p_all
     # u = User.whoosh_search(u'15705').all()
     # print u
     # db.session.delete(u)
@@ -132,7 +175,8 @@ if __name__ == '__main__':
     # except:
     #     print 111
 
-        # u = User.query.all()
-    word='哈士奇'
-    p_all = Pet.query.filter(or_(Pet.pet_name.like('%'+word+'%'),Pet.pet_type.like('%'+word+'%'),Pet.pet_description.like('%'+word+'%'))).all()
-    print p_all
+    # u = User.query.all()
+    # word = '哈士奇'
+    # p_all = Pet.query.filter(or_(Pet.pet_name.like('%' + word + '%'), Pet.pet_type.like('%' + word + '%'),
+    #                              Pet.pet_description.like('%' + word + '%'))).all()
+    # print p_all
